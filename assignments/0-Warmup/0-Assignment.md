@@ -34,9 +34,9 @@ Please provide answers to these questions using markdown notation and place them
     - [ ] NO - Not Yet
 
 
-3. Please provide a link to the repository you are using for this class.
+3. Please provide a link to the repository you are using for this class.<br>
 [https://github.com/tallex654/SysProg-Class](https://github.com/tallex654/SysProg-Class)
-4. Briefly describe what you want to get out of this class.
+4. Briefly describe what you want to get out of this class.<br>
 I want to properly understand how the compiler works to make programs run on Linux.
-5. Briefly describe any concerns you might be having with being successful in this class (if any).
+5. Briefly describe any concerns you might be having with being successful in this class (if any).<br>
 I have no concerns
