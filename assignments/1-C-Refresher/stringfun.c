@@ -49,7 +49,8 @@ int main(int argc, char *argv[]){
     int  user_str_len;      //length of user supplied string
 
     //TODO:  #1. WHY IS THIS SAFE, aka what if arv[1] does not exist?
-    //      PLACE A COMMENT BLOCK HERE EXPLAINING
+    //      This is completely safe because of the conditional before it. Specifially, argc < 2. This conditional will return true if there are less than 2 elements. Meaning that if it is true (Has less than 2 elements), the second conditional will never run because the or statement would have already returned true. In the event whee argc has more than 1 element and returns false, the second statement about the first element of argv will run. This would be fine because we know that argv has more than one element if it got to this point. 
+    
     if ((argc < 2) || (*argv[1] != '-')){
         usage(argv[0]);
         exit(1);
