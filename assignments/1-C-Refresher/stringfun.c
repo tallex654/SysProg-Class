@@ -32,7 +32,7 @@ int setup_buff(char *buff, char *user_str, int len){
 		} else {
 			buff[charNumber] = user_str[i];
                         charNumber++;
-			if (user_str[i] == ' ' && user_str[i] == '\t') {
+			if (user_str[i] == ' ' || user_str[i] == '\t') {
 				requireChar = 0;
 
 			}
@@ -45,13 +45,24 @@ int setup_buff(char *buff, char *user_str, int len){
 
    
    }
+
+   //Need to check if last char is a space, which would then be removed
+if (buff[charNumber-1] == ' ' || buff[charNumber-1] == '\t') {
+charNumber--;
+}
+
 strLength = charNumber;
    while (charNumber < len) {
 	buff[charNumber] = '.';
 	charNumber++;
+   
+   
    }
-	buff[len] = '\0';
-	return strLength;
+
+   buff[len] = '\0';
+   
+   
+   return strLength;
 
 }
 
@@ -60,6 +71,7 @@ void print_buff(char *buff, int len){
     for (int i=0; i<len; i++){
         putchar(*(buff+i));
     }
+    
     putchar('\n');
 }
 
@@ -69,7 +81,10 @@ void usage(char *exename){
 }
 
 int count_words(char *buff, int len, int str_len){
+	if (len < str_len) {
+		return -1;
 
+	}
 	if (str_len == 0) {
 		return 0;
 	}
@@ -189,7 +204,7 @@ int main(int argc, char *argv[]){
 
     user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
     if (user_str_len < 0){
-        printf("Error setting up buffer, error = %d", user_str_len);
+        printf("Error setting up buffer, error = %d\n", user_str_len);
         exit(2);
     }
 
@@ -197,7 +212,7 @@ int main(int argc, char *argv[]){
         case 'c':
             rc = count_words(buff, BUFFER_SZ, user_str_len);  //you need to implement
             if (rc < 0){
-                printf("Error counting words, rc = %d", rc);
+                printf("Error counting words, rc = %d\n", rc);
                 exit(2);
             }
             printf("Word Count: %d\n", rc);
@@ -217,7 +232,11 @@ int main(int argc, char *argv[]){
 
 
 		break;
-	
+
+	case 'x':
+	printf("Not Implemented!\n");
+	exit(3);
+break;	
         default:
             usage(argv[0]);
             exit(1);
@@ -232,6 +251,7 @@ int main(int argc, char *argv[]){
 //          starter take both the buffer as well as the length.  Why
 //          do you think providing both the pointer and the length
 //          is a good practice, after all we know from main() that 
-//          the buff variable will have exactly 50 bytes?
-//  
+//          the buff variable will have exactly 50 bytes? 
+//
+//
 //          Although the buffer for this assignment was set for 5, it was good practice to do it the way we did by using the len argument instead of BUFFER_SZ so that we would only need to change one value if we wanted to change the buffer. 
