@@ -16,8 +16,43 @@ int  count_words(char *, int, int);
 
 
 int setup_buff(char *buff, char *user_str, int len){
-    //TODO: #4:  Implement the setup buff as per the directions
-    return 0; //for now just so the code compiles. 
+    bool requireChar = true;
+  int charNumber = 0;
+	int strLength;
+   for (int i = 0, user_str[i] != "\0", i++) {
+	if (charNumber < len) { // Will continue so long as the length of entered string is less than the buffer
+	
+		if (requireChar) {
+			if (user_str[i] != ' ' && user_str[i] != "\t") {
+				buff[charNumber] = user_str[i];
+				charNumber++;
+				requireChar = false;
+			}
+
+		} else {
+			buff[charNumber] = user_str[i];
+                        charNumber++;
+			if (user_str[i] == ' ' && user_str[i] == "\t") {
+				requireChar = true;
+
+			}
+
+		}
+	} else {
+		printf("The user supplied string is too large\n");
+		return -1;
+	}
+
+   
+   }
+strLength = charNumber;
+   while (charNumber < len) {
+	buff[charNumber] = '.';
+	charNumber++;
+   }
+	buff[len] = '\0';
+	return strLength;
+
 }
 
 void print_buff(char *buff, int len){
@@ -67,7 +102,7 @@ int main(int argc, char *argv[]){
     //WE NOW WILL HANDLE THE REQUIRED OPERATIONS
 
     //TODO:  #2 Document the purpose of the if statement below
-    //      PLACE A COMMENT BLOCK HERE EXPLAINING
+    //      In this program, argv[2] would be the string entered by the user, which is used just after this if block. The purpose of the if block is to determine if the argument count is greater than 2. If a user correctly entered the operation and string, the argument count should be 3. However, if the user entered something incorrect, the following argv[2] call would cause an error. Therefore, it is vital to check if the argument count is over 2.
     if (argc < 3){
         usage(argv[0]);
         exit(1);
@@ -78,7 +113,11 @@ int main(int argc, char *argv[]){
     //TODO:  #3 Allocate space for the buffer using malloc and
     //          handle error if malloc fails by exiting with a 
     //          return code of 99
-    // CODE GOES HERE FOR #3
+    buff = (char *)malloc(BUFFER_SZ * sizeof(char));
+    if (buff == NULL) {
+	    printf("Error allocating memory\n");
+	    exit(99);
+    }
 
 
     user_str_len = setup_buff(buff, input_string, BUFFER_SZ);     //see todos
