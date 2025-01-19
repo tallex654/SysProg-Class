@@ -16,24 +16,24 @@ int  count_words(char *, int, int);
 
 
 int setup_buff(char *buff, char *user_str, int len){
-    bool requireChar = true;
+    int requireChar = 0;
   int charNumber = 0;
 	int strLength;
-   for (int i = 0, user_str[i] != "\0", i++) {
+   for (int i = 0; user_str[i] != '\0'; i++) {
 	if (charNumber < len) { // Will continue so long as the length of entered string is less than the buffer
 	
-		if (requireChar) {
-			if (user_str[i] != ' ' && user_str[i] != "\t") {
+		if (requireChar == 0) {
+			if (user_str[i] != ' ' && user_str[i] != '\t') {
 				buff[charNumber] = user_str[i];
 				charNumber++;
-				requireChar = false;
+				requireChar = 1;
 			}
 
 		} else {
 			buff[charNumber] = user_str[i];
                         charNumber++;
-			if (user_str[i] == ' ' && user_str[i] == "\t") {
-				requireChar = true;
+			if (user_str[i] == ' ' && user_str[i] == '\t') {
+				requireChar = 0;
 
 			}
 
@@ -69,9 +69,76 @@ void usage(char *exename){
 }
 
 int count_words(char *buff, int len, int str_len){
-    //YOU MUST IMPLEMENT
-    return 0;
+
+	if (str_len == 0) {
+		return 0;
+	}
+	int counter = 1; //Counting each non-whitespace character -- Start at 1 since the string cant start with a white space character
+	for (int i = 0; i < str_len; i++) {
+		if (buff[i] == ' ' || buff[i] == '\t') {
+			counter++;
+		}
+		
+		
+	}    
+	if (buff[str_len-1] == ' ' || buff[str_len-1] == '\t') {
+		counter--; //Subtracts one if last letter of user string is a space
+	}
+    return counter;
 }
+
+void reverse_string(char *buff, int str_len) {
+	char reverse[str_len+1];
+
+	  for (int i = 0; i < str_len; i++) { 
+
+        reverse[i] = buff[str_len - 1 - i]; //Starts at end of user entered string in buff
+    }
+
+	reverse[str_len] = '\0';
+	printf("Reversed String: %s\n", reverse);
+			
+		
+}
+
+void print_words(char *buff, int len, int str_len) {
+int count = 0;
+char temp[len];
+int wordCount = 1;
+int overallCount = 0;
+printf("Word Print\n");
+printf("----------\n");
+memset(temp, 0, len);
+
+for (int i = 0; i < str_len; i++) {
+	if (buff[i] == ' ' || buff[i] == '\t') 
+		
+	{
+		temp[count] = '\0';		
+		printf("%d. %s (%d)\n", wordCount, temp, count); 
+		wordCount++;
+		count = 0;
+		
+		overallCount++;
+	} else {
+		temp[count] = buff[i];
+		count++;
+		overallCount++;
+	}
+
+
+}
+
+
+   if (count > 0) {
+        temp[count] = '\0';
+        printf("%d. %s (%d)\n", wordCount, temp, count);
+    }
+
+
+
+}
+
 
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
 
@@ -138,6 +205,19 @@ int main(int argc, char *argv[]){
 
         //TODO:  #5 Implement the other cases for 'r' and 'w' by extending
         //       the case statement options
+	//
+	
+	case 'r':
+	    reverse_string(buff,user_str_len);
+	
+		break;
+	case 'w':
+	    print_words(buff,BUFFER_SZ,user_str_len);
+
+
+
+		break;
+	
         default:
             usage(argv[0]);
             exit(1);
@@ -154,4 +234,4 @@ int main(int argc, char *argv[]){
 //          is a good practice, after all we know from main() that 
 //          the buff variable will have exactly 50 bytes?
 //  
-//          PLACE YOUR ANSWER HERE
+//          Although the buffer for this assignment was set for 5, it was good practice to do it the way we did by using the len argument instead of BUFFER_SZ so that we would only need to change one value if we wanted to change the buffer. 
