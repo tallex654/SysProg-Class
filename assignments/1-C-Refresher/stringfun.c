@@ -155,6 +155,77 @@ for (int i = 0; i < str_len; i++) {
 }
 
 
+
+int does_word_appear(char *buff, int userLength, int overallCount, char *search, int searchLength) {
+    if (overallCount + searchLength > userLength) {
+        return -1;
+    }
+    for (int i = 0; i < searchLength; i++) {
+        if (buff[overallCount + i] != search[i]) {
+            return -1;
+        }
+    }
+    return start;
+}
+
+void replace_Word(char *buff, int userLength, char *search) {
+
+        int searchLength = 0;
+        int counter;
+        int insideCounter = 0;
+        while (search[searchLength] != '\0') {
+                searchLength++;
+        }
+
+
+        for (int i=0; i <= 50; i++) {
+                counter = does_word_appear(buff, userLength,i, search, searchLength);
+                        insideCounter = 0;
+                        while (insideCounter <= counter) {
+                                buff[i] = search[insideCounter];
+                                insideCounter++;
+                                i++;
+
+                        }
+
+
+
+        }
+        printf("Modified String: %s", buff);
+
+
+}
+
+
+void replace_Word(char *buff, int userLength, char *search) {
+
+	int searchLength = 0;
+	int counter;
+	int insideCounter = 0;
+	while (search[searchLength] != '\0') {
+		searchLength++;
+	}
+
+
+	for (int i=0; i <= 50; i++) {
+		counter = does_word_appear(buff, userLength,i, search, searchLength);
+			insideCounter = 0;
+			while (insideCounter <= counter) {
+				buff[i] = search[insideCounter];
+				insideCounter++;
+				i++;
+				
+			}
+			
+
+
+	}
+	printf("Modified String: %s", buff);
+
+
+}
+
+
 //ADD OTHER HELPER FUNCTIONS HERE FOR OTHER REQUIRED PROGRAM OPTIONS
 
 int main(int argc, char *argv[]){
@@ -234,8 +305,14 @@ int main(int argc, char *argv[]){
 		break;
 
 	case 'x':
-	printf("Not Implemented!\n");
-	exit(3);
+	if (argc == 5) {
+		replace_Word(buff, user_str_len, argv[4]);
+
+	} else {
+		printf("Error: Invalid amount of arguments given, rc = 1\n");
+		exit(1);
+
+	}
 break;	
         default:
             usage(argv[0]);
