@@ -197,7 +197,7 @@ int del_student(int fd, int id)
 	student_t student;
 
 
-	off_t ofset = 0;
+	int ofset = 0;
 
 	lseek(fd, 0, SEEK_SET);
 
@@ -468,18 +468,66 @@ void print_student(student_t *s) {
  */
 int compress_db(int fd)
 {
+
+	return 0;
+    // Set permissions: rw-rw----
+    // see sys/stat.h for constants
+    mode_t mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP;
+
+    // open the file if it exists for Read and Write,
+    // create it if it does not exist
+    int flags = O_RDWR | O_CREAT;
+
+
+	close(fd);
+	int Tempfd = open(DB_FILE, flags, mode);
+	
+	if (Tempfd < 0) {
+		printf(M_ERR_DB_OPEN);
+		return ERR_DB_FILE;
+	
+	}
+	student_t student;
+	int count = 0;
+
+	fd = open(DB_FILE, O_RDONLY);
+
 	if (fd < 0) {
+
+		close(Tempfd);
 		printf(M_ERR_DB_READ);
 		return ERR_DB_FILE;
-
-
-		
 	}
 
+	while (read(fd, &student, sizeof(student_t)) == sizeof(student_t)) {
 
-return 0;
+		if (memcmp(&student, &EMPTY_STUDENT_RECORD, sizeof(student_t)) == 0) {
+			lseek(Tempfd, count * sizeof(student_t), SEEK_SET);
+			count++;
+				
+		}
+		if (write(Tempfd, &student, sizeof(student_t)) != sizeof(student_t)) {
+			close(fd);
+			close(Tempfd);
+			printf(M_ERR_DB_WRITE);
+			return ERR_DB_FILE;
 
 
+		}
+
+	}
+
+  
+
+
+ 	close(fd);
+ 	close(Tempfd);
+	
+
+
+	printf(M_DB_COMPRESSED_OK);
+
+	return open(DB_FILE, flags);
 
 }
 
