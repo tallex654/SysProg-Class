@@ -57,6 +57,224 @@ int exec_local_cmd_loop()
     int rc = 0;
     cmd_buff_t cmd;
 
+
+	while (1) {
+		
+		printf("%s", SH_PROMPT);
+		fflush(stdout);
+
+		cmd_buff = malloc(SH_CMD_MAX);
+
+		if (!cmd_buff) {
+
+			printf("\n");
+			free(cmd_buff);
+			break;
+
+		}
+
+
+		cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
+
+		char *start = cmd_buff;
+
+		while (isspace((unsigned char)*start))  {
+			
+			start++;
+
+		}
+
+
+		if (*start == '\0') {
+
+			printf("%s", CMD_WARN_NO_CMD);
+			free(cmd_buff);
+			continue;
+
+		}
+
+		if (strcmp(start, EXIT_CMD) == 0) {
+
+			free(cmd_buff);
+			break;
+
+		}
+
+
+		memset(&cmd, 0, sizeof(cmd_buff_t));
+			
+		cmd._cmd_buffer = malloc(strlen(start) + 1);
+
+		if (!cmd._cmd_buffer) {
+			return ERR_MEMORY;
+
+		}
+
+
+		strcpy(cmd._cmd_buffer, start);
+
+		char *p = cmd._cmd_buffer;
+
+		char *arg_start = NULL;
+		int inQ = 0;
+
+		int argc =0;
+
+		while (*p) {
+
+			while (!inQ && isspace((unsigned char)*p)) {
+				p++;
+
+
+			}
+
+
+
+			if (*p == '\0') {
+
+				break;
+			}
+
+			if (*p == '"') {
+				inQ = !inQ;
+				p++;
+					if (!arg_start) {
+						arg_start = p;
+
+					}
+				continue;	
+
+			}
+
+
+			if (!arg_start) {
+
+				arg_start = p;
+
+			}
+
+			if (!inQ && isspace((unsigned char)*p)) {
+
+				*p = '\0';
+				cmd.argv[argc++] = arg_start;
+				arg_start = NULL;
+				p++;
+				
+				if (argc >= CMD_ARGV_MAX -1) {
+					break;
+
+				} else if (!in_quote && *p == '"') {
+					inQ = 1;
+					p++;
+
+
+
+				} else {
+					p++;
+
+				}
+					
+
+			}
+
+
+			if (arg_start) {
+
+				cmd.argc[argc++] = arg_start;
+
+				
+
+			}
+
+
+			cmd.argv[argc] = NULL;
+
+			cmd.argc = argc;
+
+
+			if (cmd.argc < 1) {
+
+				printf("%s", CMD_WARN_NO_CMD);
+				free(cmd._cmd_buffer);
+				free(cmd_buff);
+				continue;
+
+			}
+
+			if (strcmp(cmd.argv[0], "cd") == 0) {
+
+				if (cmd.argc > 1) {
+
+					chdir(cmd.argv[1]);
+
+				}
+
+				free(cmd._cmd_buffer);
+				free(cmd_buff);
+				continue;
+			}
+
+			pid_t pid = fork();
+			
+			if (pid < 0) {
+
+				rc = ERR_EXEC_CMD;
+
+				fprintf(stderr, "%s", CMD_ERR_EXECUTE)
+
+
+                               free(cmd._cmd_buffer);
+                                free(cmd_buff);
+                                continue;
+			}
+
+
+
+
+			if (pid == 0) {
+				execvp(cmd.argv[0], cmd.argv);
+				fprintf(stderr, "%s", CMD_ERR_EXECUTE);
+
+				_exit();
+
+
+			} else {
+
+				int status;
+				waitpid(pid, &status, 0);
+			}
+
+
+
+			free(cmd._cmd_buffer);
+			free(cmd_buff);
+
+
+
+
+
+
+		}
+
+
+
+
+
+
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
     // TODO IMPLEMENT MAIN LOOP
 
     // TODO IMPLEMENT parsing input to cmd_buff_t *cmd_buff
