@@ -51,239 +51,216 @@
  *  Standard Library Functions You Might Want To Consider Using (assignment 2+)
  *      fork(), execvp(), exit(), chdir()
  */
-int exec_local_cmd_loop()
-{
-    char *cmd_buff;
-    int rc = 0;
-    cmd_buff_t cmd;
 
 
-	while (1) {
+
+
+
+
+int exec_local_cmd_loop() {
+    	char *cmd_buff = malloc(SH_CMD_MAX);
+	int rc = 0;
+
+	if (!cmd_buff) {
+       	 	return ERR_MEMORY;
+    	}
+
+   
+       
+
+
+	int first = 1;
+ 	   while (1) {
+        	if (!first) {
+         	   	printf("%s", SH_PROMPT);
+       	 }
+        	
 		
-		printf("%s", SH_PROMPT);
-		fflush(stdout);
+	first = 0;
 
-		cmd_buff = malloc(SH_CMD_MAX);
+        if (fgets(cmd_buff, SH_CMD_MAX, stdin) == NULL) {
+           	 if (!isatty(STDIN_FILENO)) {
+             	 	  printf("%s", SH_PROMPT);
+            	}
+           	 printf("\n");
+           	 break;
+        }
 
-		if (!cmd_buff) {
+           cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
 
-			printf("\n");
-			free(cmd_buff);
-			break;
-
-		}
-
-
-		cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
-
-		char *start = cmd_buff;
-
-		while (isspace((unsigned char)*start))  {
-			
-			start++;
-
-		}
-
-
+           char *start = cmd_buff;
+        	while (isspace((unsigned char)*start)) {
+            		start++;
+        	}
+        	
+		
+		
+		
 		if (*start == '\0') {
-
-			printf("%s", CMD_WARN_NO_CMD);
-			free(cmd_buff);
+            		printf("%s", CMD_WARN_NO_CMD);
+        
 			continue;
-
+        	
+		
+		
+		
 		}
-
+       
+	       
+	
+	
 		if (strcmp(start, EXIT_CMD) == 0) {
-
-			free(cmd_buff);
-			break;
-
+        
+	    		break;
+      
 		}
 
+       		 cmd_buff_t cmd;
+      	 	 memset(&cmd, 0, sizeof(cmd_buff_t));
 
-		memset(&cmd, 0, sizeof(cmd_buff_t));
+     		   cmd._cmd_buffer = strdup(start);
+     		   if (!cmd._cmd_buffer) {
+     	   			    fprintf(stderr, "Memory allocation error.\n");
+        	    	continue;
+        		}
+
+       		 int argc = 0;
+        	char *p = cmd._cmd_buffer;
+        	while (*p != '\0') {
+        	    
 			
-		cmd._cmd_buffer = malloc(strlen(start) + 1);
-
-		if (!cmd._cmd_buffer) {
-			return ERR_MEMORY;
-
-		}
+			while (isspace((unsigned char)*p)) {
+                	*p = '\0';
+        
 
 
-		strcpy(cmd._cmd_buffer, start);
-
-		char *p = cmd._cmd_buffer;
-
-		char *arg_start = NULL;
-		int inQ = 0;
-
-		int argc =0;
-
-		while (*p) {
-
-			while (!inQ && isspace((unsigned char)*p)) {
-				p++;
-
-
-			}
-
-
-
-			if (*p == '\0') {
-
-				break;
-			}
-
-			if (*p == '"') {
-				inQ = !inQ;
-				p++;
-					if (!arg_start) {
-						arg_start = p;
-
-					}
-				continue;	
-
-			}
-
-
-			if (!arg_start) {
-
-				arg_start = p;
-
-			}
-
-			if (!inQ && isspace((unsigned char)*p)) {
-
-				*p = '\0';
-				cmd.argv[argc++] = arg_start;
-				arg_start = NULL;
-				p++;
-				
-				if (argc >= CMD_ARGV_MAX -1) {
-					break;
-
-				} else if (!in_quote && *p == '"') {
-					inQ = 1;
-					p++;
-
-
-
-				} else {
-					p++;
-
-				}
-					
-
-			}
-
-
-			if (arg_start) {
-
-				cmd.argc[argc++] = arg_start;
-
-				
-
-			}
-
-
-			cmd.argv[argc] = NULL;
-
-			cmd.argc = argc;
-
-
-			if (cmd.argc < 1) {
-
-				printf("%s", CMD_WARN_NO_CMD);
-				free(cmd._cmd_buffer);
-				free(cmd_buff);
-				continue;
-
-			}
-
-			if (strcmp(cmd.argv[0], "cd") == 0) {
-
-				if (cmd.argc > 1) {
-
-					chdir(cmd.argv[1]);
-
-				}
-
-				free(cmd._cmd_buffer);
-				free(cmd_buff);
-				continue;
-			}
-
-			pid_t pid = fork();
+	       
+			p++;
+           	
+		    }
+          	  
 			
-			if (pid < 0) {
+		if (*p == '\0') {
+          		      break;
+         
+     		}
 
-				rc = ERR_EXEC_CMD;
-
-				fprintf(stderr, "%s", CMD_ERR_EXECUTE)
-
-
-                               free(cmd._cmd_buffer);
-                                free(cmd_buff);
-                                continue;
-			}
-
-
-
-
-			if (pid == 0) {
-				execvp(cmd.argv[0], cmd.argv);
-				fprintf(stderr, "%s", CMD_ERR_EXECUTE);
-
-				_exit();
-
-
-			} else {
-
-				int status;
-				waitpid(pid, &status, 0);
-			}
-
-
-
-			free(cmd._cmd_buffer);
-			free(cmd_buff);
-
-
-
-
-
-
+     	       if (*p == '"') {
+        
+	       
+		       p++;
+        	        cmd.argv[argc++] = p;
+                
+			
+		while (*p && *p != '"') {
+                
+		    	p++;
+                
 		}
+                
+	
+		if (*p == '"') {
+        
+	    
+			*p = '\0';
+        	            p++;
+                }
+            
+	       } else {
+               	
+		       cmd.argv[argc++] = p;
+                
+		       while (*p && !isspace((unsigned char)*p)) {
+                  
+	       		       p++;
+              	 }
+            
+	       }
 
+	       
+            if (argc >= CMD_ARGV_MAX - 1) {
+                break;
+            }
+        }
+        
+		
+		cmd.argv[argc] = NULL;
+        	cmd.argc = argc;
 
+       		 if (cmd.argc < 1) {
+         	   printf("%s", CMD_WARN_NO_CMD);
+        
+       		   free(cmd._cmd_buffer);
+        
+		    continue;
+       		 }
 
+       		 if (strcmp(cmd.argv[0], "cd") == 0) {
+       	
+	    
+	
+			 if (cmd.argc > 1 && strlen(cmd.argv[1]) > 0) {
+              
+	     
+			     if (chdir(cmd.argv[1]) == 0) {
+                    char *cwd = getcwd(NULL, 0);
+       
+       
+		    if (cwd != NULL) {
+        	                setenv("PWD", cwd, 1);
+	                    }
+               
+			    
+			     }
 
+	     		 }
+            			 
+		 free(cmd._cmd_buffer);
 
+     		 continue;
+     
+	      
+		 }
 
+        pid_t pid = fork();
+        
+	
+	if (pid < 0) {
+        	    fprintf(stderr, "Error executing command\n");
+       
+	       
+		    free(cmd._cmd_buffer);
+        
+		    continue;
+        }
 
-	}
+        if (pid == 0) {
+            execvp(cmd.argv[0], cmd.argv);
+       
+       	    fprintf(stderr, "Error executing command\n");
+       
+       	    exit(ERR_EXEC_CMD);
+       
+       		} else {
+            int status;
+       
+       	    waitpid(pid, &status, 0);
+        }
+   
+   	free(cmd._cmd_buffer);
+    }
 
-
-
-
-
-
-
-
-
-
-
-
-    // TODO IMPLEMENT MAIN LOOP
-
-    // TODO IMPLEMENT parsing input to cmd_buff_t *cmd_buff
-
-    // TODO IMPLEMENT if built-in command, execute builtin logic for exit, cd (extra credit: dragon)
-    // the cd command should chdir to the provided directory; if no directory is provided, do nothing
-
-    // TODO IMPLEMENT if not built-in command, fork/exec as an external command
-    // for example, if the user input is "ls -l", you would fork/exec the command "ls" with the arg "-l"
-
+    free(cmd_buff);
     return OK;
 }
+
+
+
+
+
+
+
+
+
+
+

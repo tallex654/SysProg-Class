@@ -1,0 +1,293 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+#include "dshlib.h"
+
+/*
+ * Implement your exec_local_cmd_loop function by building a loop that prompts the 
+ * user for input.  Use the SH_PROMPT constant from dshlib.h and then
+ * use fgets to accept user input.
+ * 
+ *      while(1){
+ *        printf("%s", SH_PROMPT);
+ *        if (fgets(cmd_buff, ARG_MAX, stdin) == NULL){
+ *           printf("\n");
+ *           break;
+ *        }
+ *        //remove the trailing \n from cmd_buff
+ *        cmd_buff[strcspn(cmd_buff,"\n")] = '\0';
+ * 
+ *        //IMPLEMENT THE REST OF THE REQUIREMENTS
+ *      }
+ * 
+ *   Also, use the constants in the dshlib.h in this code.  
+ *      SH_CMD_MAX              maximum buffer size for user input
+ *      EXIT_CMD                constant that terminates the dsh program
+ *      SH_PROMPT               the shell prompt
+ *      OK                      the command was parsed properly
+ *      WARN_NO_CMDS            the user command was empty
+ *      ERR_TOO_MANY_COMMANDS   too many pipes used
+ *      ERR_MEMORY              dynamic memory management failure
+ * 
+ *   errors returned
+ *      OK                     No error
+ *      ERR_MEMORY             Dynamic memory management failure
+ *      WARN_NO_CMDS           No commands parsed
+ *      ERR_TOO_MANY_COMMANDS  too many pipes used
+ *   
+ *   console messages
+ *      CMD_WARN_NO_CMD        print on WARN_NO_CMDS
+ *      CMD_ERR_PIPE_LIMIT     print on ERR_TOO_MANY_COMMANDS
+ *      CMD_ERR_EXECUTE        print on execution failure of external command
+ * 
+ *  Standard Library Functions You Might Want To Consider Using (assignment 1+)
+ *      malloc(), free(), strlen(), fgets(), strcspn(), printf()
+ * 
+ *  Standard Library Functions You Might Want To Consider Using (assignment 2+)
+ *      fork(), execvp(), exit(), chdir()
+ */
+int exec_local_cmd_loop()
+{
+    char *cmd_buff;
+    int rc = 0;
+    cmd_buff_t cmd;
+
+
+	while (1) {
+		
+		printf("%s", SH_PROMPT);
+		fflush(stdout);
+
+		cmd_buff = malloc(SH_CMD_MAX);
+
+		if (!cmd_buff) {
+
+			printf("\n");
+			free(cmd_buff);
+			break;
+
+		}
+
+
+		cmd_buff[strcspn(cmd_buff, "\n")] = '\0';
+
+		char *start = cmd_buff;
+
+		while (isspace((unsigned char)*start))  {
+			
+			start++;
+
+		}
+
+
+		if (*start == '\0') {
+
+			printf("%s", CMD_WARN_NO_CMD);
+			free(cmd_buff);
+			continue;
+
+		}
+
+		if (strcmp(start, EXIT_CMD) == 0) {
+
+			free(cmd_buff);
+			break;
+
+		}
+
+
+		memset(&cmd, 0, sizeof(cmd_buff_t));
+			
+		cmd._cmd_buffer = malloc(strlen(start) + 1);
+
+		if (!cmd._cmd_buffer) {
+			return ERR_MEMORY;
+
+		}
+
+
+		strcpy(cmd._cmd_buffer, start);
+
+		char *p = cmd._cmd_buffer;
+
+		char *arg_start = NULL;
+		int inQ = 0;
+
+		int argc =0;
+
+		while (*p) {
+
+			while (!inQ && isspace((unsigned char)*p)) {
+				p++;
+
+
+			}
+
+
+
+			if (*p == '\0') {
+
+				break;
+			}
+
+			if (*p == '"') {
+				inQ = !inQ;
+				p++;
+					if (!arg_start) {
+						arg_start = p;
+
+					}
+				continue;	
+
+			}
+
+
+			if (!arg_start) {
+
+				arg_start = p;
+
+			}
+
+			if (!inQ && isspace((unsigned char)*p)) {
+
+				*p = '\0';
+				cmd.argv[argc++] = arg_start;
+				arg_start = NULL;
+				p++;
+				
+				if (argc >= CMD_ARGV_MAX -1) {
+					break;
+
+				} else if (!inQ && *p == '"') {
+					inQ = 1;
+					p++;
+
+
+
+				} else {
+					p++;
+
+				}
+					
+
+			}
+
+
+			if (arg_start) {
+
+				cmd.argv[argc++] = arg_start;
+
+				
+
+			}
+
+
+			cmd.argv[argc] = NULL;
+
+			cmd.argc = argc;
+
+
+			if (cmd.argc < 1) {
+
+				printf("%s", CMD_WARN_NO_CMD);
+				free(cmd._cmd_buffer);
+				free(cmd_buff);
+				continue;
+
+			}
+
+			if (strcmp(cmd.argv[0], "cd") == 0) {
+
+				if (cmd.argc > 1) {
+
+					chdir(cmd.argv[1]);
+
+				}
+
+				free(cmd._cmd_buffer);
+				free(cmd_buff);
+				continue;
+			}
+
+			pid_t pid = fork();
+			
+			if (pid < 0) {
+
+				rc = ERR_EXEC_CMD;
+
+				//fprintf(stderr, "%s", CMD_ERR_EXECUTE);
+
+
+                               free(cmd._cmd_buffer);
+                                free(cmd_buff);
+                                continue;
+			}
+
+
+
+
+			if (pid == 0) {
+				execvp(cmd.argv[0], cmd.argv);
+
+				            fprintf(stderr, "Error executing command.\n");
+           
+					    return ERR_EXEC_CMD;
+
+
+				
+
+
+			} else {
+
+				int status;
+				waitpid(pid, &status, 0);
+			}
+
+
+
+			free(cmd._cmd_buffer);
+			free(cmd_buff);
+
+
+
+
+
+
+		}
+
+
+
+
+
+
+
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+    // TODO IMPLEMENT MAIN LOOP
+
+    // TODO IMPLEMENT parsing input to cmd_buff_t *cmd_buff
+
+    // TODO IMPLEMENT if built-in command, execute builtin logic for exit, cd (extra credit: dragon)
+    // the cd command should chdir to the provided directory; if no directory is provided, do nothing
+
+    // TODO IMPLEMENT if not built-in command, fork/exec as an external command
+    // for example, if the user input is "ls -l", you would fork/exec the command "ls" with the arg "-l"
+
+    return OK;
+}
