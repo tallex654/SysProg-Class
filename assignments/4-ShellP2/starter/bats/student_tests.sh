@@ -25,6 +25,17 @@ EOF
 }
 
 
+@test "Check ls runs with argument" {
+    run ./dsh <<EOF
+ls -a
+EOF
+
+    # Assertions
+    [ "$status" -eq 0 ]
+}
+
+
+
 @test "Check uname runs without errors with an argument" {
     run ./dsh <<EOF
 uname -a
@@ -152,14 +163,36 @@ EOF
 }
 
 
+@test "cat works properly" {
+echo "HELLOOOOO" > TXTXTTEMP.txt  
 
+
+run "./dsh" <<EOF
+cat TXTXTTEMP.txt   
+EOF
+ expected_output="HELLOOOOOdsh2>dsh2>cmdloopreturned0"
+stripped_output=$(echo "$output" | tr -d '[:space:]')
+    echo "Captured stdout:"
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+}
 
 
 
 @test "Change of directory with .." {
     current=$(pwd)
 
-    cd /tmp
+
+    mkdir -p ~/tmp 
+    cd ~/tmp
     mkdir -p dsh-test
 
     run "${current}/dsh" <<EOF
@@ -173,7 +206,7 @@ EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="/tmp/dsh-test/tmpdsh2>dsh2>dsh2>dsh2>dsh2>cmdloopreturned0"
+    expected_output="/home/ta654/tmp/dsh-test/home/ta654/tmpdsh2>dsh2>dsh2>dsh2>dsh2>cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
@@ -194,10 +227,67 @@ EOF
 
 
 
-@test "cd with extra arguments doesnt error" {
+
+@test "cd works with quotation marks" {
     current=$(pwd)
 
-    cd /tmp
+
+    mkdir -p ~/tmp
+    cd ~/tmp
+    mkdir -p dsh-test 
+
+    run "${current}/dsh" <<EOF
+cd "dsh-test"
+pwd
+EOF
+
+    # Strip all whitespace (spaces, tabs, newlines) from the output
+    stripped_output=$(echo "$output" | tr -d '[:space:]')
+
+    # Expected output with all whitespace removed for easier matching
+    expected_output="/home/ta654/tmp/dsh-testdsh2>dsh2>dsh2>cmdloopreturned0"
+
+    # These echo commands will help with debugging and will only print
+    #if the test fails
+    echo "Captured stdout:"
+    echo "Output: $output"
+    echo "Exit Status: $status"
+    echo "${stripped_output} -> ${expected_output}"
+
+    # Check exact match
+    [ "$stripped_output" = "$expected_output" ]
+
+    # Assertions
+    [ "$status" -eq 0 ]
+
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+@test "cd with extra arguments doesnt error" {
+    current=$(pwd)
+    mkdir -p ~/tmp
+    cd ~/tmp
     mkdir -p dsh-test
 
     run "${current}/dsh" <<EOF
@@ -211,7 +301,7 @@ EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
 
     # Expected output with all whitespace removed for easier matching
-    expected_output="/tmp/dsh-test/tmpdsh2>dsh2>dsh2>dsh2>dsh2>cmdloopreturned0"
+    expected_output="/home/ta654/tmp/dsh-test/home/ta654/tmpdsh2>dsh2>dsh2>dsh2>dsh2>cmdloopreturned0"
 
     # These echo commands will help with debugging and will only print
     #if the test fails
@@ -284,7 +374,7 @@ EOF
 exit
 EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
-    expected_output="cmdloopreturned0"
+    expected_output="dsh2>cmdloopreturned0"
     echo "Captured stdout:"
     echo "Output: $output"
     echo "Exit Status: $status"
@@ -301,7 +391,7 @@ EOF
 nonexistentcommand
 EOF
     stripped_output=$(echo "$output" | tr -d '[:space:]')
-    expected_output="Errorexecutingcommanddsh2>dsh2>cmdloopreturned0"
+    expected_output="Errorexecutingcommanddsh2>dsh2>dsh2>cmdloopreturned0"
     echo "Captured stdout:"
     echo "Output: $output"
     echo "Exit Status: $status"
